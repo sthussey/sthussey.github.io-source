@@ -3,7 +3,7 @@ languageCode = "en-us"
 title = "Scott Hussey's Technical Articles"
 theme = "mainroad"
 googleAnalytics = "UA-163410777-1"
-publishdir = "/"
+publishdir = "./"
 
 [Author]
   name = "Scott Hussey"
