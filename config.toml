@@ -1,0 +1,13 @@
+baseURL = "https://sthussey.github.io/"
+languageCode = "en-us"
+title = "Scott Hussey's Technical Articles"
+theme = "mainroad"
+googleAnalytics = "UA-163410777-1"
+publishdir = "/"
+
+[Author]
+  name = "Scott Hussey"
+  bio = "An IT professional and curious technology hobbyist."
+
+[Params]
+  authorbox = true
