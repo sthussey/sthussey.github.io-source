@@ -11,3 +11,16 @@ publishdir = "./"
 
 [Params]
   authorbox = true
+
+[Params.sidebar]
+  home = "right"
+  widgets = ["search", "recent", "taglist", "social"]
+
+[Params.widgets]
+  recent_num = 3
+  tags_counter = false
+
+[Params.widgets.social]
+  twitter = "sthussey"
+  linkedin = "sthussey"
+  github = "sthussey"
