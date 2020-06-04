@@ -8,6 +8,7 @@ tags:
   - kustomize
   - helm
   - cue
+  - kpt
 ---
 
 Kubernetes' API is accessed by building YAML documents describing,
