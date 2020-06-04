@@ -388,6 +388,182 @@ keys so that the final result is just the valid Kubernetes resource definitions.
            httpGet:
              path: /
              port: http
+</code></pre><h3 id="kpt">kpt</h3>
+<p>It was suggested I look at <code>kpt</code> as well, so I&rsquo;m adding it into the comparison.</p>
+<p>Creating a package is pretty straightforward, similar to kustomize where the package
+are just the plain resource definitions. It gets a little more complex to introduce
+tunables as it uses OpenAPI-based configuration it terms <code>setters</code>.</p>
+<p>Initially just create a basic package by using the <code>kpt</code> command to initialize
+the package metadata in an empty directory and then pull in the YAML resource
+definitions.</p>
+<pre><code> ~/kpt/pkg$ kpt pkg init . --tag kpt.dev/app=grass --description &quot;grass kpt package&quot;
+ writing Kptfile
+ writing README.md
+ ~/kpt/pkg$ ls
+ Kptfile  README.md
+ ~/kpt/pkg$ cp ../../target/pkg/crm-deployment.yaml .
+ ~/kpt/pkg$ cp ../../target/pkg/crm-serviceaccount.yaml .
+ ~/kpt/pkg$ ls
+ crm-deployment.yaml  crm-serviceaccount.yaml  Kptfile  README.md
+</code></pre><p>Now we need to make the Deployment replica count tunable by adding a &lsquo;setter&rsquo;. The
+<code>kpt</code> CLI can manipulate the files for you, or you can edit them by hand. The specification
+appears in the <code>Kptfile</code>, then the references are added as line comments
+in any number of YAML resource definitions.</p>
+<pre><code> ~kpt/pkg$ cat Kptfile
+ apiVersion: kpt.dev/v1alpha1
+ kind: Kptfile
+ metadata:
+   name: .
+ packageMetadata:
+   tags:
+   - kpt.dev/app=grass
+   shortDescription: grass kpt package
+ ~kpt/pkg$ cat crm-deployment.yaml
+ ---
+ apiVersion: apps/v1
+ kind: Deployment
+ metadata:
+   name: crm-deployment
+   labels:
+     deployed-by: hand
+ spec:
+   selector:
+     matchLabels:
+       app: crm
+   replicas: 1
+   template:
+     metadata:
+       labels:
+         app: crm
+     spec:
+       serviceAccount: crm-serviceaccount
+       containers:
+       - name: crm-api
+         image: grasscrm:1.2
+         livenessProbe:
+           httpGet:
+             path: /
+             port: https
+         readinessProbe:
+           httpGet:
+             path: /
+             port: https
+ ...
+ ~kpt/pkg$ kpt cfg create-setter . replicas 1
+ ~kpt/pkg$ cat Kptfile
+ apiVersion: kpt.dev/v1alpha1
+ kind: Kptfile
+ metadata:
+   name: .
+ packageMetadata:
+   tags:
+   - kpt.dev/app=grass
+   shortDescription: grass kpt package
+ openAPI:
+   definitions:
+     io.k8s.cli.setters.replicas:
+       x-k8s-cli:
+         setter:
+           name: replicas
+           value: &quot;1&quot;
+ ~kpt/pkg$ cat crm-deployment.yaml
+ apiVersion: apps/v1
+ kind: Deployment
+ metadata:
+   name: crm-deployment
+   labels:
+     deployed-by: hand
+ spec:
+   selector:
+     matchLabels:
+       app: crm
+   replicas: 1 # {&quot;$ref&quot;:&quot;#/definitions/io.k8s.cli.setters.replicas&quot;}
+   template:
+     metadata:
+       labels:
+         app: crm
+     spec:
+       serviceAccount: crm-serviceaccount
+       containers:
+       - name: crm-api
+         image: grasscrm:1.2
+         livenessProbe:
+           httpGet:
+             path: /
+             port: https
+         readinessProbe:
+           httpGet:
+             path: /
+             port: https
+</code></pre><p>We can add additional validation using OpenAPI schema fixtures. Similar to
+the cue example, we can specify that <code>replicas</code> must be an int. Note the
+additional <code>type</code> field under <code>io.k8s.cli.setters.replicas</code> below.</p>
+<pre><code> ~/kpt/pkg$ cat Kptfile
+ apiVersion: kpt.dev/v1alpha1
+ kind: Kptfile
+ metadata:
+   name: .
+ packageMetadata:
+   tags:
+   - kpt.dev/app=grass
+   shortDescription: grass kpt package
+ openAPI:
+   definitions:
+     io.k8s.cli.setters.replicas:
+       type: integer
+       x-k8s-cli:
+         setter:
+           name: replicas
+           value: &quot;1&quot;
+</code></pre><p>kpt offers powerful querying and reporting against a package of Kubernetes
+resources, even if they aren&rsquo;t initialized into a kpt package. Here we can
+see in a tree-view the image used for each deployment.</p>
+<pre><code> ~/kpt/pkg$ kpt cfg tree . --image
+ .
+ ├── [crm-deployment.yaml]  Deployment crm-deployment
+ │   └── spec.template.spec.containers
+ │       └── 0
+ │           └── image: grasscrm:1.2
+ └── [crm-serviceaccount.yaml]  ServiceAccount crm-serviceaccoun
+</code></pre><p>Here was dump the YAML resource definitions such that they could be
+sent to <code>kubectl</code>, however <code>kpt</code> also supports directly applying
+definitions to a cluster. Because the setter references are hidden
+behind line comments, there is no issue including them in the serialization.
+They will just be ignored by a YAML parser.</p>
+<pre><code> ~kpt/pkg$ kpt cfg cat .
+ apiVersion: apps/v1
+ kind: Deployment
+ metadata:
+   name: crm-deployment
+   labels:
+     deployed-by: hand
+ spec:
+   replicas: 1 # {&quot;$ref&quot;:&quot;#/definitions/io.k8s.cli.setters.replicas&quot;}
+   selector:
+     matchLabels:
+       app: crm
+   template:
+     metadata:
+       labels:
+         app: crm
+     spec:
+       serviceAccount: crm-serviceaccount
+       containers:
+       - name: crm-api
+         image: grasscrm:1.2
+         livenessProbe:
+           httpGet:
+             port: https
+             path: /
+         readinessProbe:
+           httpGet:
+             port: https
+             path: /
+ ---
+ apiVersion: v1
+ kind: ServiceAccount
+ metadata:
+   name: crm-serviceaccount
 </code></pre><h2 id="coming-next">Coming Next</h2>
 <p>In the next article we&rsquo;ll see how to build environment-specific
 tuning in each tool. Also I&rsquo;ll talk about some ways CI can be
