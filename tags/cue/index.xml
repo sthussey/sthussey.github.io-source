@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>cue on Scott Hussey&#39;s Technical Articles</title>
+    <link>https://sthussey.github.io/tags/cue/</link>
+    <description>Recent content in cue on Scott Hussey&#39;s Technical Articles</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 30 May 2020 07:49:56 -0500</lastBuildDate>
+    
+	<atom:link href="https://sthussey.github.io/tags/cue/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Kubernetes Document Management</title>
+      <link>https://sthussey.github.io/posts/kube-doc-mgmt/</link>
+      <pubDate>Sat, 30 May 2020 07:49:56 -0500</pubDate>
+      
+      <guid>https://sthussey.github.io/posts/kube-doc-mgmt/</guid>
+      <description>Kubernetes&amp;rsquo; API is accessed by building YAML documents describing, or declaring, your desired state of various Kubernetes resources. Kubernetes then continually works to bring the actual state of the resource in alignment with the desired state described in the documents.
+For a small application deployed on Kubernetes, managing these resource documents isn&amp;rsquo;t difficult. But in an enterprise environment where tens of applications are being deployed into multiple environments managed by several teams, managing the documents describing all of these deployments becomes a true chore.</description>
+    </item>
+    
+  </channel>
+</rss>
